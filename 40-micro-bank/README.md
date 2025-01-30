@@ -8,7 +8,7 @@ estándar.
 
 El micro bank es un servidor sencillo que guarda una lista de
 cuentas. Cada cuenta indica el nombre de la persona dueña de la cuenta
-y el saldo disponible.  El servidor ofrece los siguientes servicios:
+y el saldo disponible. El servidor ofrece los siguientes servicios:
 
   - `stop`, para detener el servidor.
   
@@ -44,8 +44,17 @@ fallos que reinicie el servidor cuando el proceso falle.
 
 ## Testing
 
-Implemente tests que comprueben el comportamiento del servidor y tests
-que comprueben el funcionamiento del supervisor.
+Implemente tests que comprueben el comportamiento del servidor:
+
+  - Las secuencias de llamadas válidas devuelven el resultado
+    esperado.
+  
+  - Las secuencias inválidas devuelven el error esperado.
+  
+Y tests que comprueben el funcionamiento del supervisor:
+
+   - Si el servidor termina abruptamente, el supervisor lanza un
+     _nuevo_ proceso servidor.
 
 > :warning: Recuerde que los tests se ejecutan con `mix test`.
 
