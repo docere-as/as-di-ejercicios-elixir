@@ -86,4 +86,6 @@ que ofrezca los siguientes servicios:
   En este iteración el gestor tiene que recuperarse de estos fallos.
   
   :warning: Puede fallar un proceso cliente o puede fallar el nodo en
-  que se ejecuta.
+  que se ejecuta. El siguiente esquema ilustra ambos casos:
+
+  ![](gestor-recursos-tolerancia-a-fallos.svg)
