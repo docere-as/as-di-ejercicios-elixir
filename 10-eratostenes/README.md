@@ -45,5 +45,5 @@ proceso que simplemente marca el final de la cadena. A continuación se
 muestra un ejemplo de esta idea:
 
 
-![](eratostenes-concurrente.svg)
+![](eratostenes-concurrente.png)
 

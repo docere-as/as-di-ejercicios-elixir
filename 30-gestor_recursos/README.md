@@ -88,4 +88,4 @@ que ofrezca los siguientes servicios:
   :warning: Puede fallar un proceso cliente o puede fallar el nodo en
   que se ejecuta. El siguiente esquema ilustra ambos casos:
 
-  ![](gestor-recursos-tolerancia-a-fallos.svg)
+  ![](gestor-recursos-tolerancia-a-fallos.png)
