@@ -18,6 +18,11 @@ acciones:
   - Consultar el perfil de otra/o usuaria/o.
 
 
+El siguiente dibujo ilustra el tipo de sistema que desarrollaremos:
+
+![](servidores-federados.png)
+
+
 ## Términos y conceptos
 
 - _Usuario_
