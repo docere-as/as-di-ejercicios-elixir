@@ -38,6 +38,9 @@ trabajadores_.
       cliente.
 	
   
+![](pool-de-trabajadores.png)
+
+
 ## Problemática
 
 El _master_ se puede encontrar con las siguientes situaciones:
