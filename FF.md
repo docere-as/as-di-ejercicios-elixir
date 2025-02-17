@@ -61,7 +61,16 @@ trabajo antes de que el profesor revise tu trabajo.
   a implementarlo. A no ser que podamos hacerlo mucho mejor.
   
 
-## **[F07]** Pool de trabajadores
+
+## **[F-E01]** Eratostenes concurrente
+  La implementación no se corresponde con lo que se pide en el enunciado.
+
+  Hay que crear un proceso `filtrar_primo` por cada número primo que se encuentra
+  y cada proceso `filtrar_primo` tiene que pasar los números que superan el filtro
+  al siguiente proceso, no al proceso padre, tal y como se ilustra en el diagrama
+  del enunciado.
+
+## **[F-P01]** Pool de trabajadores
 
   La responsabilidad de crear los procesos trabajadores le corresponde
   al proceso líder/master.
@@ -70,7 +79,7 @@ trabajo antes de que el profesor revise tu trabajo.
   el que los crea.
   
   
-## **[F08]** Gestor de recursos
+## **[F-R01]** Gestor de recursos
 
   El servidor no contempla el caso en que un mismo cliente se le
   asignen varios recursos.
@@ -80,13 +89,13 @@ trabajo antes de que el profesor revise tu trabajo.
   liberar cualquiera de los recursos asigandos.
 
 
-## **[F09]** Gestor de recursos
+## **[F-R02]** Gestor de recursos
 
   El repositorio debe incluir la solución a cada una de las tres
   iteraciones.
 
 
-## **[F10]** Gestor de recursos
+## **[F-R03]** Gestor de recursos
 
   En la versión distribuida, el servidor no monitoriza los nodos que
   contienen los clientes a los que se les asignó algún recurso. Esto
@@ -94,7 +103,7 @@ trabajo antes de que el profesor revise tu trabajo.
   dichos clientes.
 
 
-## **[F11]** Micro bank
+## **[F-B01]** Micro bank
 
   En el test que comprueba que el supervisor lanza un nuevo proceso
   servidor en caso de que falle el actual, es importante comprobar que
