@@ -44,6 +44,11 @@ _TIP_: La implementación es más sencilla si existe un tipo especial de
 proceso que simplemente marca el final de la cadena. A continuación se
 muestra un ejemplo de esta idea:
 
+_TIP_: En el rango (2, n) no es necesario incluir los números pares.
+
+Los números del rango (2,n) se envían de uno en uno al primer filtro de la
+cadena. Una vez terminados, se envía un mensaje especial para recuperar la
+lista de primos.
 
 ![](eratostenes-concurrente.png)
 
