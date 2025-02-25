@@ -75,8 +75,7 @@ trabajo antes de que el profesor revise tu trabajo.
   La responsabilidad de crear los procesos trabajadores le corresponde
   al proceso líder/master.
   
-  Debes cambiar la implementación para que no sea el proceso cliente
-  el que los crea.
+  Debes cambiar la implementación para que no se creen dentro del proceso cliente.
   
   
 ## **[F-R01]** Gestor de recursos
