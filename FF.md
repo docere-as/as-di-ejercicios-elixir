@@ -61,6 +61,11 @@ trabajo antes de que el profesor revise tu trabajo.
   a implementarlo. A no ser que podamos hacerlo mucho mejor.
   
 
+## **[F07]** Genérico
+
+  La extensión `.exs` está definida para scripts programados en elixir.
+  El código elixir convencional se escribe en ficheros con extensión `.ex`.
+
 
 ## **[F-E01]** Eratostenes concurrente
   La implementación no se corresponde con lo que se pide en el enunciado.
