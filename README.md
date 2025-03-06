@@ -34,7 +34,7 @@ documento.
 |      7 | Discusión de la práctica. |
 |      8 | Fin del feedback en los ejercicios. |
 |      9 | Discusión del diseño de la arquitectura. | 
-|     10 | Discusión del diseño de la arquitectura. Fin de las correcciones de los ejercicios. | 
+|     10 | Discusión del diseño de la arquitectura. Fin de las evaluaciones de los ejercicios. | 
 |     11 | Desarrollo de la práctica. |
 |     12 | Desarrollo de la práctica. |
 |     13 | Desarrollo de la práctica. |
