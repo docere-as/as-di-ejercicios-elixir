@@ -85,6 +85,13 @@ trabajo antes de que el profesor revise tu trabajo.
   
 ## **[F-R01]** Gestor de recursos
 
+  De esta forma el proceso servidor queda _linkado_ al proceso que
+  llama a la función `Gestor.start`. Es poco probable que este sea
+  el comportamiento deseado.
+
+
+## **[F-R02]** Gestor de recursos
+
   El servidor no contempla el caso en que un mismo cliente se le
   asignen varios recursos.
   
@@ -93,13 +100,13 @@ trabajo antes de que el profesor revise tu trabajo.
   liberar cualquiera de los recursos asigandos.
 
 
-## **[F-R02]** Gestor de recursos
+## **[F-R03]** Gestor de recursos
 
   El repositorio debe incluir la solución a cada una de las tres
   iteraciones.
 
 
-## **[F-R03]** Gestor de recursos
+## **[F-R04]** Gestor de recursos
 
   En la versión distribuida, el servidor no monitoriza los nodos que
   contienen los clientes a los que se les asignó algún recurso. Esto
@@ -113,3 +120,8 @@ trabajo antes de que el profesor revise tu trabajo.
   servidor en caso de que falle el actual, es importante comprobar que
   efectivamente el primer proceso no está vivo y el proceso nuevo es
   distinto al anterior.
+
+## **[F-B02]** Micro bank
+
+  Los test tienen que "limpiar" al acabar. En este caso si el `setup`
+  arranca el servidor, el `on_exit` tiene que pararlo.
