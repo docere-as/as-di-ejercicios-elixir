@@ -155,7 +155,7 @@ post_message(from_server, receiver, message)  -- from_server es el servidor que 
   servidor. La dirección del nodo es el nombre del servidor que forma
   parte del identificador de los actores.
 
-  Como parete del ejercicio tenemos que resolver la siguiente cuestión
+  Como parte del ejercicio tenemos que resolver la siguiente cuestión
   técnica. El identificador del actor nos indica el nombre del
   servidor en que está registrado, que a su vez se corresponde con la
   dirección del _nodo_ BEAM en que se ejecuta el servidor. Sin embargo
