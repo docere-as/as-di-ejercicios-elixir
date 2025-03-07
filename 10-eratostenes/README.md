@@ -31,12 +31,16 @@ Nuestra versión secuencial no hace uso de procesos.
 
 ## Versión concurrente
 
-Crearemos un proceso por cada número primo que descubrimos, de tal forma que:
+Crearemos un proceso _filtro_ por cada número primo que descubrimos, de tal forma que:
+
+  - Los procesos se crean de forma dinámica y forman una lista o _pipe_.
+
+  - Cada proceso tiene un único enlace a su _siguiente_ proceso. Excepto el último.
 
   - El proceso filtra todos los números que recibe.
   
-  - El proceso tiene un enlace a su _siguiente_ proceso. Excepto el último.
-  
+  - Los procesos reciben los números de uno en uno.
+
   - Si un número pasa el filtro se envía al siguiente proceso.
   
   
