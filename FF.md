@@ -71,9 +71,10 @@ trabajo antes de que el profesor revise tu trabajo.
   La implementación no se corresponde con lo que se pide en el enunciado.
 
   Hay que crear un proceso `filtrar_primo` por cada número primo que se encuentra
-  y cada proceso `filtrar_primo` tiene que pasar los números que superan el filtro
-  al siguiente proceso, no al proceso padre, tal y como se ilustra en el diagrama
-  del enunciado.
+  y cada proceso `filtrar_primo` recibe **un** número de cada vez y tiene que pasar
+  los números que superan el filtro al siguiente proceso.
+  Los procesos filtro sólo conocen el siguiente proceso en la lista y nunca al
+  proceso padre, tal y como se ilustra en el diagrama del enunciado.
 
 ## **[F-P01]** Pool de trabajadores
 
@@ -123,5 +124,6 @@ trabajo antes de que el profesor revise tu trabajo.
 
 ## **[F-B02]** Micro bank
 
-  Los test tienen que "limpiar" al acabar. En este caso si el `setup`
-  arranca el servidor, el `on_exit` tiene que pararlo.
+  Los test tienen que ser independientes. Por tanto cada tests debe dejar
+  todo en el estado en que estaba, i.e. "limpiar" al acabar. En este caso
+  si el `setup` arranca el servidor, el `on_exit` tiene que pararlo.
