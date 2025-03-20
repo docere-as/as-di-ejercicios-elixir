@@ -34,6 +34,9 @@ trabajadores_.
 	- Distribuye los items del lote entre los trabajadores del pool y
       recopila sus respuestas.
 	  
+        - Sólo envía trabajos a los trabajadores ociosos, es decir, los
+      que no están ejecutando ningún trabajo.
+
 	- Una vez recopiladas todas las respuestas, las devuelve al
       cliente.
 	
