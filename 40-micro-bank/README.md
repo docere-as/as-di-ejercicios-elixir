@@ -58,5 +58,11 @@ Y tests que comprueben el funcionamiento del supervisor:
 
 > :warning: Recuerde que los tests se ejecutan con `mix test`.
 
+> :warning: Recuerde que los tests tienen que ser independientes.
+> I.e.: el resultado tiene que ser el mismo independientemente del
+> orden en que ser ejecutan. Cualquier preparación antes de un test
+> que modifique el estado como cambiar la B.D. arrancar el servidor,
+> etc. puede afectar al siguiente test. Por tanto, estas acciones
+> se deben deshacer al finalizar el test.
 
 
