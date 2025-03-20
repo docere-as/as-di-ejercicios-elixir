@@ -115,6 +115,16 @@ trabajo antes de que el profesor revise tu trabajo.
   dichos clientes.
 
 
+## **[F-R05]** Gestor de recursos
+
+  Una función `start` no debe crear el proceso con `start_link` esto
+  es incoherente con el nombre de la función y los clientes de esta
+  función no esperan ese comportamiento.
+
+  Además al crear el proceso con `start_link` este queda _linkado_ al
+  proceso que llama a `start`, con lo cual puede que termine cuando
+  termine dicho proceso, en general ese no es el comportamiento deseado.
+
 ## **[F-B01]** Micro bank
 
   En el test que comprueba que el supervisor lanza un nuevo proceso
@@ -122,8 +132,30 @@ trabajo antes de que el profesor revise tu trabajo.
   efectivamente el primer proceso no está vivo y el proceso nuevo es
   distinto al anterior.
 
+
 ## **[F-B02]** Micro bank
 
   Los test tienen que ser independientes. Por tanto cada tests debe dejar
   todo en el estado en que estaba, i.e. "limpiar" al acabar. En este caso
   si el `setup` arranca el servidor, el `on_exit` tiene que pararlo.
+
+
+## **[F-B03]** Mirco bank
+
+  Os habéis cargado el `.gitignore` que crea `mix` y el repositorio está
+  polucionado con los resultados de la compilación: `_build/`.
+
+## **[F-F01]** Servidores federados
+
+  Los clientes establecen el servidor, i.e. nodo, al que quieren enviar
+  la petición, no el pid ni el nombre de un proceso.
+
+
+## **[F-F02]** Servidores federados
+
+  Si el actor que realiza la petición no pertenece al servidor, se rechaza
+  la petición.
+
+  Si el actor "destino" está registrado en otro servidor, hay que redirigir
+  la petición al dicho servidor. El actor "destino" es el actor que recibe
+  el mensaje o el actor cuyo perfil se desea consultar.
