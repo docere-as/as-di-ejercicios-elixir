@@ -3,39 +3,56 @@
 En este ejercicio comenzaremos por implementar un sencillo proceso que
 gestione una lista de recursos.
 
-A continuación pasaremos a realizar una versión distribuida del mismo,
-para terminar en una tercera iteración tolerante a fallos.
+A continuación pasaremos a realizar una segunda iteración con una
+versión distribuida del gestor de recursos, para terminar en una
+tercera iteración tolerante a fallos.
 
+El resultado del ejercicio debe incluir los resultados de las tres
+iteaciones. No es válido realizar únicamente la última iteración.
+
+La naturaleza de los recursos no es relevante para el ejercicio. Lo
+que nos interesa es la gestión de los mismos. Los _recursos_ los
+representaremos como simples _átomos_ de elixir.
 
 
 ## Descripción del gestor
 
-En este ejercicio definiremos un servidor que actúe como un gestor de recursos,
-que ofrezca los siguientes servicios:
+En este ejercicio desarrollaremos un servidor cuyo cometido es la
+gestión de un conjunto de recursos. Los servicios son los siguientes:
 
-  - `{:alloc, from}`, que devuelve a `from` el par `{:ok, recurso}`,
-    si `recurso` es un recurso que se encuentra disponible, o bien
-    `{;error, :sin_recursos}` si no hay recursos disponibles.
+  - `{:alloc, from}`, asigna un recurso al cliente. Devuelve a `from`:
+  
+    * `{:ok, recurso}`, si `recurso` es un recurso que se encuentra disponible,
 
-  - `{:release, from, recurso}`, que devuelve un `recurso` previamente
-    solicitado por `from`, devuelve `:ok` si la operación se lleva
-    a cabo con éxito y el recurso queda disponible para nuevas
-    asignaciones, o `{:error, :recurso_no_reservado}` si el recurso no había
-    sido asignado al proceso `from`.
+      La elección del recurso a devolver es arbitraria. Por ejemplo,
+      puede devolver el primer recurso disponible.
 
-  - `{:avail, from}`, que devuelve un entero con el número de recursos
-    disponibles en el servidor.
+	* `{;error, :sin_recursos}` si no hay recursos disponibles.
+
+	Una vez asignado, el recurso deja de estar disponible y no se
+    puede asignar a ningún otro cliente hasta que sea liberado.
+
+  - `{:release, from, recurso}`, libera un `recurso` previamente
+    asignado al cliente. Devuelve a `from`:
+	
+	* `:ok` si la operación se lleva a cabo con éxito y el recurso
+      queda disponible para nuevas asignaciones,
+	
+	* `{:error, :recurso_no_reservado}` si el recurso no había sido
+      asignado al proceso `from`.
+
+  - `{:avail, from}`, que devuelve el número de recursos disponibles
+    en el servidor.
 
 
-## Otras consideraciones y requisitos
+## Requisitos
 
-- Cada recurso se modela como un átomo. En el momento de iniciar el
-  servidor, se le proporciona la lista de recursos disponibles
-  inicialmente, p.e. `[:a, :b, :c, :d]`.
+- En el momento de iniciar el servidor, se le proporciona la lista de
+  recursos disponibles inicialmente, p.e. `[:a, :b, :c, :d]`.
 
 - Los recursos se asignan en un orden arbitrario.
 
-- Para facilitar la interacción con el servidor, el proceso gestor se
+- Para facilitar el envío de mensajes al servidor, el proceso se
   registra con el nombre `gestor`.
 
 - El módulo ofrece una función `start/1` que inicia el gestor y lo
@@ -49,30 +66,20 @@ que ofrezca los siguientes servicios:
   que devuelve un recurso es el que, efectivamente, reservo el
   recurso.
   
-  ```elixir
-	iex(10)> pid = self().	# Pid ligado a la identidad del shell
-	<0.44.0>
-	iex(11)> spawn(fn () -> {:ok, r} = gestor:alloc(),
-	                         pid ! r
-	               end)
-	<0.34.0>
-	iex(12)> receive, do a -> gestor:release(a) end
-	{:error, :recurso_no_reservado}
-  ```
+- Un cliente puede reservar más de un recurso.
   
-  Respecto al ejemplo anterior, tenga cuidado ya que la shell es un
-  proceso elixir que termina cuando se produce un error, creándose un
-  nuevo proceso shell.
-
 
 ## Iteraciones
 
 1. Versión no distribuida
 
   El gestor y los clientes se ejecutan en un mismo nodo.
-  
+
+
 2. Versión distribuida
 
+  Se diferencia de la primera iteración en los siguientes aspectos:
+  
   - Los clientes se ejecutan en nodos distintos a los del gestor.
   
   - El proceso gestor se debe registrar globalmente en la máquina
@@ -80,10 +87,16 @@ que ofrezca los siguientes servicios:
 	
 3. Versión tolerante a fallos
 
-  Los procesos cliente que han reservado un recurso pueden fallar
-  antes de liberarlo, en cuyo caso el recurso no se recuperaría nunca.
+  Para esta iteración tenemos que tener en cuenta que los procesos
+  cliente que han reservado un recurso pueden fallar antes de
+  liberarlo. Si esto ocurriese en las iteraciones anteriores, el
+  recurso no se liberaría nunca.
+
+  Esta iteración se diferencia de la segunda iteración en el
+  siguiente aspectos:
   
-  En este iteración el gestor tiene que recuperarse de estos fallos.
+  - El gestor recupera los recursos asignados cuando un proceso
+    cliente falla.
   
   :warning: Puede fallar un proceso cliente o puede fallar el nodo en
   que se ejecuta. El siguiente esquema ilustra ambos casos:

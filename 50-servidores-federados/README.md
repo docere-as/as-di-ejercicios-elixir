@@ -1,15 +1,33 @@
 # Servidores federados
 
-En este ejercicio trabajaremos una arquitectura más, la del los
-[servidores federados](https://es.wikipedia.org/wiki/Fediverso).
+En este ejercicio vamos a desarrollar una arquitectura inspirada en la
+idea de [servidores
+federados](https://es.wikipedia.org/wiki/Fediverso) y uno de los
+protocolos más extendidos para la implementación de este tipo de
+arquitectura es
+[_ActivityPub_](https://es.wikipedia.org/wiki/ActivityPub).
 
-Desarrollaremos un sistema usando como guía el protocolo
-[_ActivityPub_](https://es.wikipedia.org/wiki/ActivityPub). Usando las
-ideas de dicho protocolo plantearemos una versión simplificada,
-empleando únicamente los tecnologías ofrecidas por elixir/OTP.
+Para el ejercicio emplearemos únicamente los mecanismos propios de
+elixir/OTP, desarrollando una versión simplificada de la arquitectura
+y el protocolo subyacente.
 
-El sistema permitirá a las/los usuarias/os realizar las siguientes
-acciones:
+La idea de partida es que tenemos un conjunto arbitario de _servidores
+federados_. Todos los servidores son iguales en características y
+servicios ofrecidos. Las personas usuarias del sistema están
+registradas únicamente en un _servidor federado_ y únicamente realizan
+peticiones a ese servidor.
+
+Sin embargo, una persona usuaria puede realizar una petición que
+implice la intervención de un _servidor federado_ distinto. En este
+caso el servidor delega la petición al otro _servidor federado_,
+recibe la respuesta y se la reenvía a la usuaria.
+
+El siguiente dibujo ilustra la idea de arquitectura del sistema:
+
+![](servidores-federados.png)
+
+
+El sistema de servidores federados tiene los siguientes servicios:
 
   - Enviar un mensaje a otra/o usuaria/o.
   
@@ -17,10 +35,6 @@ acciones:
   
   - Consultar el perfil de otra/o usuaria/o.
 
-
-El siguiente dibujo ilustra el tipo de sistema que desarrollaremos:
-
-![](servidores-federados.png)
 
 
 ## Términos y conceptos
@@ -38,34 +52,34 @@ El siguiente dibujo ilustra el tipo de sistema que desarrollaremos:
 - _Servidor_
 
   Cada uno de lo nodos que conforman la red de _servidores
-  federados_. Cada servidor es independiente y es capaz tanto de
-  atender las peticiones de los clientes como de comunicarse con otros
-  servidores si es necesario.
-
+  federados_. Los servidores son independientes, pero pueden
+  comunicarse y colborar con otros servidores si es necesario.
 
 - _Actor_
 
-  Las/os usuarias/os pueden estar registrada/os en uno o más
-  servidores concretos. Cada cuenta de usuario en un servidor se
-  representa como un _actor_.
+  Un _actor_ representa una cuenta de usuario en un servidor. Una
+  persona puede registrarse múltiples actores en distintos servidores,
 
 
-### Actor
+## Actor
 
-Cada actor tiene un identificador único en el sitema con el siguiente
-formato:
+Cada actor tiene un identificador único en todo el sistema se
+servidores federados. El identificador tiene el siguiente formato:
 
 > `user@server`
 
 Donde:
 
-  - `server` es la dirección del nodo servidor donde está registrada
+  - `server` es el _nombre federado_ del servidor donde está registrada
     la cuenta de usuario.
+	
+	El nombre federado es un nombre único. No puede haber dos
+    servidores federados con el mismo nombre.
 	
   - `user` es un nombre de usuario único dentro del servidor.
 
-
-El perfil de cada actor contiene la siguiente información:
+Cada actor tiene asociados un perfil y un _inbox_. El perfil contiene
+la siguiente información del actor:
 
   - Identificador. P.e.: `spock@enterprise`.
   
@@ -74,115 +88,131 @@ El perfil de cada actor contiene la siguiente información:
   - Avatar. La url de la imagen que se usa como avatar.
 
 
-Cada actor dispone de un _inbox_ donde se almacenan los mensajes que
-recibe.
+El _inbox_ almacena los mensajes que recibe el actor. Es análogo a los
+_mailbox_ de los procesos de elixir.
 
 
 ### Servidor
 
-Los servidores pueden funcionar de varios modos:
+Los servidores tienen dos cometidos principales:
 
-  - Como un servidor convencional, atendiendo las peticiones de los
-    clientes.
+  - Atender las peticiones de los clientes.
 	
 	P.e.: una usuaria realiza una petición para consultar el perfil de
-    otra usuaria registrada en el mismo servidor.
+    un actor.
 	
 	
-  - Como un cliente, realizando peticiones a otros servidores
-    federados.
-	
-	P.e.: ante una petición para consultar el perfil de una usuaria
-    registrada en otro servidor federado.
+  - Colaborar con otros servidores federados.
+  
+    Como un cliente, realizando peticiones a otros servidores
+    federados, o como servidor, atendiendos las peticiones de otros
+    servidores federados.
 	
   - Como un servidor federado, atendiendo las peticiones de otros
     servidores.
-	
-	P.e.: otro servidor federado realiza una petición para consultar
-    el perfil de una usuaria registrada en el servidor.
-	
 
-La lógica que siguen los servidores para reaccionar a una petición es
-la siguiente:
+El módulo del servidor debe las siguientes funciones públicas a los
+clientes:
+
+```
+get_profile(requestor, actor)
+    -- requestor es el actor que realiza la petición
+    -- actor     identifica el perfil que se desea consultar
+							  
+post_message(sender, receiver, message)
+    -- sender   es el actor que envía el mensaje
+    -- receiver es el actor destinatario el mensaje
+    -- message  es el mensaje enviado
+										 
+retrieve_messages(actor)
+    -- actor es el actor que realiza la petición
+```
+
+## Funcionamiento no federado
+
+Las usuarias únicamente pueden realizar peticiones al servidor en el
+que están registradas.
+
+Si el servicio solicitado en recuperar sus mensajes, el servidor
+resuelve la petición como un servidor convencional.
+
+Si el servicio solicitado es enviar un mensaje a, o consultar de
+perfil de otro actor. Si el actor está registrado en el mismo
+servidor, de nuevo resuelve la petición como un servidor convencional.
+
+
+## Funcionamiento federado
+
+Cuando el servicio solicitado es enviar un mensaje a, o consultar el
+perfil de un actor que esta registrado en otro servidor federado, no
+se puede resolver la petición de forma convencional. En este caso, la
+petición se tiene que delegar en el servidor donde esté registrado el
+actor.
+
+La lógica que sigue el servidores para resolver una petición es la
+siguiente:
 
 ```
 si
-  la usuaria no es un actor registrado en el servidor
+  la usuaria no es un actor registrado en el servidor 
     error
   
-  el servidor puede resolver la petición
+  recuperar mensajes
+    responder con _inbox_
+	
+  enviar a, ver perfil de actor, actor está registrado en el servidor
     resolver la petición
 	responder a la usuaria
 	
-  el servidor no puede resolver la petición
+  sino
      enviar la petición al servidor correspondiente
 	 espear la respuesta del otro servidor
 	 responder a la usuaria
 ```
 
 
-Para cubrir las funcionalidades del sistema, el servidor debe
-ofrecer los siguientes servicios a los clientes:
+Para la comunicación entre _servidores federados_ emplearemos los siguientes
+servicios:
 
 ```
-get_profile(requestor, actor)  -- requestor es el actor que realiza la petición
-                               -- actor     identifica el perfil que se desea consultar
-							  
-post_message(sender, receiver, message)  -- sender   es el actor que envía el mensaje
-                                         -- receiver es el actor que recibe el mensaje
-										 -- message  es el mensaje enviado
-										 
-retrieve_messages(actor)  -- actor es el actor que realiza la petición
-```
-
-Y a los otros servidores:
-
-```
-get_profile(from_server, actor)  -- from_server es el servidor que envía la petición
-                                 -- actor       identifica el perfil que se desa consultar
+get_profile(from_server, actor)
+    -- from_server es el servidor que redirige la petición
+    -- actor       identifica el perfil que se desa consultar
 								 
-post_message(from_server, receiver, message)  -- from_server es el servidor que envía la petición
-                                              -- receiver es el actor que recibe el mensaje
-	   									      -- message  es el mensaje enviado
+post_message(from_server, receiver, message)
+    -- from_server es el servidor que redirige la petición
+    -- receiver es el actor destinatario del mensaje
+    -- message  es el mensaje enviado
 ```
 
 
-## Requisitos del ejercicio
+## Requisitos
 
 - Emplear `gen_server` para implementar los procesos servidores.
 
-- Cada _nodo_ de la máquina virtual BEAM sólo puede alojar un único
-  servidor. La dirección del nodo es el nombre del servidor que forma
-  parte del identificador de los actores.
+- Usar un _nodo_ por cada _servidor federado_. Es decir, en cada
+  _nodo_ de la máquina virtual BEAM sólo puede ejecutarse un único
+  servidor.
+  
+  El nombre federado del servidor es el mismo que el nombre del nodo.
 
-  Como parte del ejercicio tenemos que resolver la siguiente cuestión
-  técnica. El identificador del actor nos indica el nombre del
-  servidor en que está registrado, que a su vez se corresponde con la
-  dirección del _nodo_ BEAM en que se ejecuta el servidor. Sin embargo
-  queda por resolver cómo descubrir el nombre o el pid del proceso
-  servidor dentro del nodo.
+- No se especifica nada sobre el proceso servidor. Cada _servidor
+  federado_ está implementado como un proceso _gen_server_, pero a
+  priori no sabemos ni su _pid_, ni su nombre de proceso si es que lo
+  tiene.
+  
+  Queda a discrección del equipo de desarrollo resolver este aspecto
+  técnico.
 
+- Tenemos que comprobar que las peticiones provienen de un _actor_
+  registrado en el servidor, pero no implementaremos ninguna
+  autenticación, gestión de permisos, ...
 
+- No consideramos la persistencia de los datos. Podemos asumir que los
+  datos se pierden al apagar el sistema.
 
-## Control de acceso
-
-Para este ejercicio no consideraremos la gestión de permisos,
-capacidades, roles, etc. Únicamente comprobaremos las peticiones
-provienen de un _actor_ que efectivamente está registrado en el propio
-servidor. Dicho de otra manera, un actor registrado en el servidor_a,
-no puede hacer peticiones a ningún otro servidor.
-
-
-## Persistencia 
-
-Para este ejercicio tampoco necesitamos considerar la persistencia de
-los datos en los servidores. Podemos guardarlos en memoria, aunque se
-pierdan al apagar el sistema.
-
-
-## Registro de usuarios
-
-El registro y mantenimiento de usuarios no está contemplado en este
-ejercicio. Por tanto para probar el sistema es importante implementar
-funciones que pueblen los servidores con datos de usuarios
-registrados.
+- El registro y mantenimiento de usuarios no está contemplado en este
+  ejercicio.
+  
+- Es impotante implementar funciones que pueblen los servidores con
+  datos de usuarios registrados para realizar pruebas.

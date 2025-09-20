@@ -1,4 +1,4 @@
-# Ejercicios de AS 24/25
+# Ejercicios de AS 25/26
 
 Este repositorio contiene los ejercicios de elixir para la asignatura
 Arquitectura Software.
@@ -9,16 +9,18 @@ realizarse los ejercicios.
 
 ## Miembros del equipo
 
-Cada equipo está formado necesariamente por tres personas. Los datos de
-dichas personas se han de anotar a continuación:
+Cada equipo está formado necesariamente por dos o tres personas, según
+lo establecido por el profesor al comienzo del cuatrimestre.
+
+A continuación se han de anotar los datos de los integrantes del equipo:
 
 - Apellido1 Apellido2, Nombre : github username : udc username
 - Apellido1 Apellido2, Nombre : github username : udc username
 - Apellido1 Apellido2, Nombre : github username : udc username 
 
-**N.B.:** Los ejercicios no recibirán ninguna corrección si el equipo
-no está formado por tres personas y sus datos no están anotados en este
-documento.
+**N.B.:** Los ejercicios no recibirán ninguna corrección si los datos
+de los miembros del equipo no están anotados en este documento o el
+número de integrantes no es el indicado.
 
 
 ## Agenda
