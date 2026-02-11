@@ -1,218 +1,258 @@
-# Servidores federados
+# "Fediverso" elixir
 
-En este ejercicio vamos a desarrollar una arquitectura inspirada en la
-idea de [servidores
-federados](https://es.wikipedia.org/wiki/Fediverso) y uno de los
-protocolos más extendidos para la implementación de este tipo de
-arquitectura es
+En este ejercicio vamos a conectar los apendido en los ejercicios
+anteriores desarrollando una arquitectura inspirada en la idea de
+[servidores federados](https://es.wikipedia.org/wiki/Fediverso) y uno
+de los protocolos más extendidos para la implementación de este tipo
+de arquitectura es
 [_ActivityPub_](https://es.wikipedia.org/wiki/ActivityPub).
 
-Para el ejercicio emplearemos únicamente los mecanismos propios de
-elixir/OTP, desarrollando una versión simplificada de la arquitectura
-y el protocolo subyacente.
-
-La idea de partida es que tenemos un conjunto arbitario de _servidores
-federados_. Todos los servidores son iguales en características y
-servicios ofrecidos. Las personas usuarias del sistema están
-registradas únicamente en un _servidor federado_ y únicamente realizan
-peticiones a ese servidor.
-
-Sin embargo, una persona usuaria puede realizar una petición que
-implice la intervención de un _servidor federado_ distinto. En este
-caso el servidor delega la petición al otro _servidor federado_,
-recibe la respuesta y se la reenvía a la usuaria.
-
-El siguiente dibujo ilustra la idea de arquitectura del sistema:
+El siguiente diagrama ilustra la idea de arquitectura del sistema:
 
 ![](servidores-federados.png)
 
 
-El sistema de servidores federados tiene los siguientes servicios:
+## Objetivos de aprendizaje
 
-  - Enviar un mensaje a otra/o usuaria/o.
+  - Comprender la arquitectura de servidores federados.
   
-  - Recuperar sus mensajes.
+  - Validar las competencias adquiridas en los ejercicios anteriores
+    aplicándolas a este ejercicio.
+
+  - Ser capaces de incluir lógica de control de errores y
+    autorización en un servidor.
   
-  - Consultar el perfil de otra/o usuaria/o.
+  - Aprendder a configurar sistemas distribuidos reales en Elixir.
+
+---
+
+## Introducción al Modelo de Servidores Federados
+
+¿Alguna vez te has preguntado cómo es posible que alguien en Mastodon
+pueda seguir a alguien en una instancia diferente, o cómo el correo
+electrónico permite que un usuario de @gmail.com escriba a uno de
+@outlook.es?
+
+En esta práctica, vamos a implementar una versión simplificada de
+**ActivityPub**. No construiremos un servidor centralizado (como el
+antiguo Twitter), sino una red de servidores independientes que
+**colaboran entre sí** cuando es necesario.
+
+---
+
+## El Concepto: ¿Cómo funciona nuestra Federación?
+
+En este sistema, el mundo se divide en **Nodos**. Cada nodo es una
+instancia de Elixir que corre un único servidor (`gen_server`).
+
+### La Identidad (El Actor)
+
+Cada usuario se identifica como un **Actor**. Su "DNI" en el sistema
+sigue el formato:
+
+> `usuario@servidor`
+
+- **Servidor:** Es el nombre del nodo donde reside la cuenta. Es único en la red.
+
+- **Usuario:** Es el nombre elegido dentro de ese servidor.
 
 
+### La Regla de Oro del Cliente
 
-## Términos y conceptos
+Un usuario **solo** puede hablar con su propio servidor. Si
+`spock@enterprise` quiere algo, debe pedírselo al servidor
+`enterprise`. Nunca directamente a otro.
 
-- _Usuario_
 
-  Persona usuaria del sistema.
+---
 
-- _Cliente_
+## Requisitos del Sistema
 
-  Aplicación que emplea la/el usuaria/o. Le permite acceder a las
-  funcionalidades del sistema a través de distintas peticiones a un
-  servidor.
+### Gestión de Datos (En Memoria)
+
+No necesitamos bases de datos externas. Cada servidor mantendrá en su
+estado interno en memoria:
+
+  - **Perfiles de usuarios:** (ID, Nombre Completo, URL del Avatar).
   
-- _Servidor_
-
-  Cada uno de lo nodos que conforman la red de _servidores
-  federados_. Los servidores son independientes, pero pueden
-  comunicarse y colborar con otros servidores si es necesario.
-
-- _Actor_
-
-  Un _actor_ representa una cuenta de usuario en un servidor. Una
-  persona puede registrarse múltiples actores en distintos servidores,
+  - **Inbox (Buzón):** Una lista de mensajes recibidos para cada
+    usuario local.
 
 
-## Actor
+### B. Servicios para el Usuario (API Cliente)
 
-Cada actor tiene un identificador único en todo el sistema se
-servidores federados. El identificador tiene el siguiente formato:
+Vuestro `gen_server` debe implementar las siguientes funciones para
+los usuarios locales:
 
-> `user@server`
+| Función | Descripción | Validación |
+| --- | --- | --- |
+| `get_profile(solicitante, objetivo)` | Obtener los datos de un perfil. | El `solicitante` debe estar registrado en el servidor que recibe la llamada. |
+| `post_message(emisor, receptor, mensaje)` | Enviar un texto a otro usuario. | El `emisor` debe estar registrado en el servidor actual. |
+| `retrieve_messages(usuario)` | Ver los mensajes acumulados en el *inbox*. | El `usuario` debe ser local de este servidor. |
 
-Donde:
+> **Nota sobre el error:** Si un usuario intenta usar un servidor
+> donde no está registrado, el sistema debe devolver siempre:
+> `{:error, :usuario_no_registrado}`.
 
-  - `server` es el _nombre federado_ del servidor donde está registrada
-    la cuenta de usuario.
-	
-	El nombre federado es un nombre único. No puede haber dos
-    servidores federados con el mismo nombre.
-	
-  - `user` es un nombre de usuario único dentro del servidor.
 
-Cada actor tiene asociados un perfil y un _inbox_. El perfil contiene
-la siguiente información del actor:
+---
 
-  - Identificador. P.e.: `spock@enterprise`.
+
+## Lógica de Delegación (El "Core" de la Federación)
+
+Aquí es donde ocurre la magia. Cuando un servidor recibe una petición,
+debe decidir:
+
+  1. **Caso Local:** Si el objetivo (perfil o receptor) está en el
+     mismo servidor, se resuelve accediendo al estado interno.
+	 
+	 El servidor resuelve la petición de forma autónoma.
   
-  - Nombre completo. P.e.: "S'chn T'gai Spock"
+  2. **Caso Federado:** Si el objetivo pertenece a **otro servidor**,
+     el servidor actual debe actuar como intermediario y contactar con
+     el servidor remoto.
+	 
+	 El servidor delega la petición a otro servidor.
+	 
+
+### Servicios entre Servidores (API Interna)
+
+Para que los servidores hablen entre sí, debéis implementar estas
+versiones de las funciones:
+
+  - `get_profile(desde_servidor, actor_objetivo)`
   
-  - Avatar. La url de la imagen que se usa como avatar.
+  - `post_message(desde_servidor, emisor, receptor, mensaje)`
 
 
-El _inbox_ almacena los mensajes que recibe el actor. Es análogo a los
-_mailbox_ de los procesos de elixir.
+---
 
 
-### Servidor
+## Restricciones Técnicas (El "Cómo")
 
-Los servidores tienen dos cometidos principales:
+Para asegurar que el ejercicio sea evaluable y funcional:
 
-  - Atender las peticiones de los clientes.
-	
-	P.e.: una usuaria realiza una petición para consultar el perfil de
-    un actor.
-	
-	
-  - Colaborar con otros servidores federados.
+  - **Herramienta:** Uso obligatorio de `mix` para la gestión del
+    proyecto.
   
-    Como un cliente, realizando peticiones a otros servidores
-    federados, o como servidor, atendiendos las peticiones de otros
-    servidores federados.
-	
-  - Como un servidor federado, atendiendo las peticiones de otros
-    servidores.
-
-El módulo del servidor debe las siguientes funciones públicas a los
-clientes:
-
-```
-get_profile(requestor, actor)
-    -- requestor es el actor que realiza la petición
-    -- actor     identifica el perfil que se desea consultar
-							  
-post_message(sender, receiver, message)
-    -- sender   es el actor que envía el mensaje
-    -- receiver es el actor destinatario el mensaje
-    -- message  es el mensaje enviado
-										 
-retrieve_messages(actor)
-    -- actor es el actor que realiza la petición
-```
-
-## Funcionamiento no federado
-
-Las usuarias únicamente pueden realizar peticiones al servidor en el
-que están registradas.
-
-Si el servicio solicitado en recuperar sus mensajes, el servidor
-resuelve la petición como un servidor convencional.
-
-Si el servicio solicitado es enviar un mensaje a, o consultar de
-perfil de otro actor. Si el actor está registrado en el mismo
-servidor, de nuevo resuelve la petición como un servidor convencional.
-
-
-## Funcionamiento federado
-
-Cuando el servicio solicitado es enviar un mensaje a, o consultar el
-perfil de un actor que esta registrado en otro servidor federado, no
-se puede resolver la petición de forma convencional. En este caso, la
-petición se tiene que delegar en el servidor donde esté registrado el
-actor.
-
-La lógica que sigue el servidores para resolver una petición es la
-siguiente:
-
-```
-si
-  la usuaria no es un actor registrado en el servidor 
-    error
+  - **Abstracción:** Uso del behaviour `gen_server`.
   
-  recuperar mensajes
-    responder con _inbox_
-	
-  enviar a, ver perfil de actor, actor está registrado en el servidor
-    resolver la petición
-	responder a la usuaria
-	
-  sino
-     enviar la petición al servidor correspondiente
-	 espear la respuesta del otro servidor
-	 responder a la usuaria
-```
-
-
-Para la comunicación entre _servidores federados_ emplearemos los siguientes
-servicios:
-
-```
-get_profile(from_server, actor)
-    -- from_server es el servidor que redirige la petición
-    -- actor       identifica el perfil que se desa consultar
-								 
-post_message(from_server, receiver, message)
-    -- from_server es el servidor que redirige la petición
-    -- receiver es el actor destinatario del mensaje
-    -- message  es el mensaje enviado
-```
-
-
-## Requisitos
-
-- Emplear `gen_server` para implementar los procesos servidores.
-
-- Usar un _nodo_ por cada _servidor federado_. Es decir, en cada
-  _nodo_ de la máquina virtual BEAM sólo puede ejecutarse un único
-  servidor.
+  - **Distribución:** El nombre del servidor (`gen_server`) debe
+    coincidir con el nombre del nodo Elixir.
   
-  El nombre federado del servidor es el mismo que el nombre del nodo.
-
-- No se especifica nada sobre el proceso servidor. Cada _servidor
-  federado_ está implementado como un proceso _gen_server_, pero a
-  priori no sabemos ni su _pid_, ni su nombre de proceso si es que lo
-  tiene.
+  - **Ubicación:** Un nodo Elixir = Un servidor federado. No puede
+    haber más de un servidor en un nodo.
   
-  Queda a discrección del equipo de desarrollo resolver este aspecto
-  técnico.
+  - **Simplicidad:** No implementéis sistemas de contraseñas, registro
+    de usuarios ni persistencia en disco. Centraos en la comunicación.
 
-- Tenemos que comprobar que las peticiones provienen de un _actor_
-  registrado en el servidor, pero no implementaremos ninguna
-  autenticación, gestión de permisos, ...
 
-- No consideramos la persistencia de los datos. Podemos asumir que los
-  datos se pierden al apagar el sistema.
+---
 
-- El registro y mantenimiento de usuarios no está contemplado en este
-  ejercicio.
-  
-- Es impotante implementar funciones que pueblen los servidores con
-  datos de usuarios registrados para realizar pruebas.
+
+## Tu Plan de Trabajo (Sugerido)
+
+Crea tu plan de trabajo para desarrollar el ejercicio. A continuación
+se muestra una sugerencia:
+
+1. **Fase 1 (Local):** Implementa un `gen_server` que gestione
+   usuarios locales. Asegúrate de que `post_message` y `get_profile`
+   funcionen cuando todos están en el mismo nodo.
+
+2. **Fase 2 (Distribución):** Aprende a extraer el nombre del nodo
+   desde el ID `user@server`. Investiga cómo localizar un proceso en
+   un nodo remoto.
+
+3. **Fase 3 (Delegación):** Implementa la lógica donde el Servidor A
+   contacta con el Servidor B si el usuario no es local.
+
+
+## Testing
+
+Aquí tienes una propuesta de batería de pruebas organizada por niveles
+de complejidad. Esta estructura es válida para construir el proyecto
+paso a paso.
+
+La batería no es exhaustiva, sientete libre para añadir las pruebas
+que consideres necesarias.
+
+
+### Pruebas Unitarias: El Servidor Aislado
+
+Antes de conectar nodos, debemos asegurar que un único servidor
+gestiona correctamente sus propios datos.
+
+| Escenario | Acción | Resultado Esperado |
+| --- | --- | --- |
+| **Registro local** | Consultar perfil de un usuario que existe en el servidor. | `{:ok, %{full_name: "...", ...}}` |
+| **Acceso denegado** | Cualquier petición realizada por un usuario no registrado en el servidor. | `{:error, :usuario_no_registrado}` |
+| **Buzón vacío** | Recuperar mensajes de un usuario que acaba de registrarse. | `[]` (Lista vacía) |
+| **Mensajería local** | `user1` envía un mensaje a `user2` (ambos en el mismo servidor). | `{:ok, :sent}` y el mensaje aparece en el inbox de `user2`. |
+
+
+### Pruebas de Integración: La Federación
+
+Para estas pruebas, necesitarás levantar al menos dos nodos Elixir
+(p.e., `enterprise@localhost` y `voyager@localhost`).
+
+
+#### A. Consulta de Perfiles Cruzados
+
+* **Caso:** `spock@enterprise` solicita el perfil de `seven@voyager`.
+* **Flujo esperado:**
+1. El cliente llama a `enterprise`.
+2. `enterprise` detecta que el servidor es `voyager`.
+3. `enterprise` contacta con el nodo `voyager`.
+4. El resultado viaja de vuelta al cliente original.
+
+#### B. Mensajería Inter-Servidores
+
+* **Caso:** `spock@enterprise` envía "Larga vida y prosperidad" a `seven@voyager`.
+* **Validación:**
+1. Verificar que `enterprise` acepta la petición (porque Spock es local).
+2. Verificar que el mensaje llega al *inbox* de `seven` en el nodo `voyager`.
+3. Verificar que si Spock intenta ver sus propios mensajes, el mensaje enviado **no** está en su buzón (solo en el del receptor).
+
+
+### 3. Pruebas de "Stress" y Casos Frontera
+
+Aquí es donde demostramos si nuestra arquitectura es resiliente.
+
+- **Identidad inexistente en remoto:** `user1@A` intenta enviar un
+  mensaje a `fantasma@B`. El servidor `B` debe responder que el
+  usuario no existe, y el servidor `A` debe propagar ese error
+  correctamente.
+
+- **El servidor remoto está caído:** `user1@A` intenta consultar un
+  perfil en el servidor `C`, pero el nodo `C` no está
+  disponible. ¿Cómo gestiona tu `gen_server` el *timeout* o la falta
+  de conexión? (Muy importante en sistemas distribuidos).
+
+- **Formato de ID inválido:** ¿Qué ocurre si alguien intenta enviar un
+  mensaje a un usuario cuyo ID no tiene el formato `user@server`?
+
+
+---
+
+
+## Sugerencia Pedagógica: Script de Población
+
+Para facilitar estas pruebas, te sugiero crear un módulo `Federation.Fixtures` que automatice el arranque:
+
+> **Propuesta:** Crea una función `setup_federation()` que:
+> 1. Inicie los procesos `gen_server` en los diferentes nodos.
+> 2. Inyecte datos de prueba (usuarios como Kirk, Spock, Janeway, etc.).
+> 3. Así podrás ejecutar los tests en un entorno predecible.
+> 
+> 
+
+
+---
+
+## Retrospetiva final
+
+Una vez finalizado este ejercicio, habrás finalizado todos los
+ejercicios de elixir previstos. Realiza una reflexión final repasando
+lo aprendido sobre las capacidades del lenguaje, las arquitecturas
+implementadas y su conexión con los contendios teóricos vistos en
+clase.

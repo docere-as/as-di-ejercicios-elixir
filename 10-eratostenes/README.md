@@ -2,15 +2,66 @@
 
 En este ejercicio implementaremos dos adaptaciones de la [Criba de
 Eratóstenes](https://es.wikipedia.org/wiki/Criba_de_Erat%C3%B3stenes).
+En la primera versión haremos programación secuencial y en la segunda
+programación concurrente. En ambas versiones seguiremos el estilo de
+programación propio de elixir. Es decir, escribiremos _código
+idiomático_.
 
-En ambos casos tenemos la implementación constará de un módulo
-`Eratostenes` con una función pública `primos(integer()) ::
-list(integer())`
+
+## Objetivos de aprendizaje en la versión secuencial
+
+  - Repasar la implementación de fuciones básicas para el manejo de
+    listas en un lenguaje funcional.
+	
+  - Familiarizarse con la escritura de código idiomático en elixir.
+  
+  - Familiarizarse con la filosofía _let it fail_. Esta filosofía es
+    lo contrario a la programación defensiva.
+
+### Condidiciones para lograr los objetivos de aprendizaje
+
+  - No usar el módulo `Enum`.
+  
+  - Escribir las funciones como una secuencia de _cláusulas_.
+  
+  - Usar el _pattern matching_ y las _guardas_ para definir las
+    funciones.
+  
+  
+## Objetivos de aprendizaje en la versión concurrente
+
+  - Familiarizarse con el tipo de procesos más frecuente en elixir.
+  
+  - Aprender a crear procesos, inicializar y guardar su estado.
+  
+  - Aprender a intercambiar mensajes entre procesos.
+
+  - Comprender que un proceso puede ejecutar varias funciones.
+  
+  
+### Condidiciones para lograr los objetivos de aprendizaje
+
+  - Ajustarse a la arquitectura de procesos definida en el enunciado.
+  
+  - Considerar las dos alternativas: a) un proceso se comporta diferente
+    según sea su estado, b) existen varios tipos de procesos.
+	
+  
+## Requisitos adicionales
+
+  - No usar la herramienta de automatización de proyectos: `mix`.
+  
+  - En ambas versiones la implementación se realizará en un único
+    módulo `Eratostenes`.
+	
+  - El módulo tendrá una única función pública: `primos(integer()) ::
+    list(integer())`
 
 
 ```elixir
 defmodule Eratostenes do
 
+  @spec primos(integer()) :: list(integer())
   def primos(n) do
   end
   
@@ -23,10 +74,8 @@ una lista de todos los números primos entre 2 y `n`.
 
 ## Versión secuencial
 
-En esta versión la ejecución es completamente secuencial y no usamos
-los procesos de _elixir_.
-
-El algotirmo funciona de la siguiente manera:
+Nuestra versión del algoritmo de cribado funciona de la siguiente
+manera:
 
 1. Creamos una lista con todos los números desde 2 hasta `n`.
 
@@ -45,69 +94,72 @@ El algotirmo funciona de la siguiente manera:
 
 ## Versión concurrente
 
-En esta versión haremos uso de procesos como es habitual en las
-aplicaciones de _elixir_. Por tanto la ejecución será concurrente.
+En esta versión haremos uso de procesos en su forma habitual en
+elixir.
 
-El algoritmo se sigue basando en la idea original de la _Criba de
-Eratostenes_, pero no es mismo que en la versión secuencial.
+El algoritmo conserva la intuición original de la _Criba de
+Eratostenes_, pero es distinto al que hemos implementado en la versión
+secuencial.
 
-El algoritmo funciona de la siguiente manera:
+El diseño de la arquitectura de procesos de esta versión se fundamenta
+en una cola de procesos que llamaremos `filtro`.  Cada `filtro` guarda
+en su estado un número primo y la referencia al siguiente proceso en
+la cola.
+
+La cola es dinámica y va creciendo a medida que descubrimos nuevos
+números primos.
+
+
+### Primera opción
+Antes de nada considera esta primera descripción del algoritmo:
 
 1. Creamos una cola de procesos vacía.
 
-   A los procesos de la cola los llamaremos `filtro`.
-   
-   Cada `filtro` guarda un número primo y la referencia al siguiente
-   proceso en la cola.
-
 2. Para cada número de la lista del 2 a `n`.
 
-   a. Si la cola está vacía creamos un proceso filtro con ese número.
+   a. Si la cola está vacía creamos un proceso _filtro_ con ese
+   número.
    
    b. Si la cola no está vacía, enviamos un mensaje con el número al
       primer filtro de la cola.
 	  
-	  Cada filtro cuando recibe un número, comprueba si es divisible
-	  por su número primo.
-	  
-	  - Si es divisible, lo ignora.
-	  
-	  - Si no es divisible
-	  
-	    - Se lo envía al siguiente filtro de la cola.
-	  
-	    - Si es el último de la cola, crea un nuevo filtro al final de
-	      la cola con el nuevo número.
-
 3. Enviamos un mensaje de finalización al primer filtro de la cola.
 
 4. Esperamos un mensaje con el resultado.
 
 
-Los puntos que destacan en este algoritmo:
+Y el algoritmo de cada proceso _filtro_:
 
-  - Los procesos se crean de forma dinámica y forman una lista, cola o
-    _pipe_.
+1. Espera a recibir un número.
 
-  - Cada proceso tiene un único enlace a su _siguiente_
-    proceso. Excepto el último.
+2. Comprueba si es divisible por el número primo que guarda en su
+   estado.
+	  
+   a. Si es divisible, lo ignora y no hace nada.
+	  
+   b. Si no es divisible, comprueba si es el último _filtro_ de la cola.
+	  
+	  b.1 Si no es el último, envía el número al siguiente filtro de la cola.
+	  
+      b.2. Si es el último, crea un nuevo proceso _filtro_ con el
+	      número y el nuevo _filtro_ pasa a ser el último de la cola.
 
-  - El proceso filtra todos los números que recibe.
+### Segunda opción
+Una vez examinada la descripción anterior del algoritmo, considera la
+siguiente variación. Además de los procesos _filtro_, existe otro tipo
+de proceso que podemos llamar _último_. Este proceso siempre está al
+final de la cola y su algoritmo es distinto.
   
-  - Los procesos reciben los números de uno en uno.
-
-  - Si un número pasa el filtro se envía al siguiente proceso.
-  
-  - _TIP_: La implementación es más sencilla si además de los procesos
-   filtro, usamos un tipo especial de proceso que simplemente actua
-   como final de la cadena.
-
-  - Existen varias formas de recuperar la lista de primos. En el algoritmo
-    no hemos especificado cómo hacerlo.
-	
 A continuación se muestra una ilustración con varios estados
 intermedios de la cola de filtros:
 
 ![](eratostenes-concurrente.png)
+
+
+### Última consideración
+Por último considera la forma más adecuada que recuperar la lista
+final de primos. Ten en cuenta que tu decisión también implica la
+forma de almacenar los resultado intermedios.
+
 
 
