@@ -54,6 +54,9 @@ número de integrantes no es el indicado.
   podrá revisar las correcciones y el ejercicio quedará marcada como
   erróneo.
 
+- Después de corregir un issue, asegúrate que el mismo problema no se
+  da en los ejercicios posteriores.
+  
 ---
 
 ## Agenda
