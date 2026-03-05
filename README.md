@@ -7,6 +7,8 @@ Por cada ejercicio encontramos un directorio que contiene su
 enunciado. Los directorios siguen el mismo orden en que deben
 realizarse los ejercicios.
 
+---
+
 ## Miembros del equipo
 
 Cada equipo está formado necesariamente por dos o tres personas, según
@@ -22,6 +24,37 @@ A continuación se han de anotar los datos de los integrantes del equipo:
 de los miembros del equipo no están anotados en este documento o el
 número de integrantes no es el indicado.
 
+---
+# Protocolo de uso del repositorio
+
+- Haz _push_ con frecuencia. Cuanto antes este disponible el ejercicio
+  en github, antes lo podrá revisar el profesor.
+  
+- Después de revisar el ejercicio, el profesor te dará el _feedback_
+  correspondiente en un _issue_ dentro del propio github.
+  
+  * Asegúrate de tener activadas la notificaciones correspondientes
+    para recibir un aviso cuando tengas un issue nuevo.
+	
+  * Cada issue tiene su propio foro de discusión donde comentar,
+    preguntar, ...
+	
+  * El feedback te indicará qué cosas has hecho bien y que aspectos del
+    ejercicio necesitas corregir o se pueden mejorar.
+	
+  * Después de corregir el ejercicio, el profesor revisará las
+    correcciones.
+	
+	Si las corrección están bien, el profesor cerrará el issue.
+	
+	Sino, el profesor volverá a darte feedback en el propio issue.
+	
+- Los ejercicios que necesitan correcciones quedan marcados como 
+  erróneos. Si cierras el issue correspondiente, el profesor nunca
+  podrá revisar las correcciones y el ejercicio quedará marcada como
+  erróneo.
+
+---
 
 ## Agenda
 
