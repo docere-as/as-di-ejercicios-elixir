@@ -22,7 +22,7 @@ El siguiente diagrama ilustra la idea de arquitectura del sistema:
   - Ser capaces de incluir lógica de control de errores y
     autorización en un servidor.
   
-  - Aprendder a configurar sistemas distribuidos reales en Elixir.
+  - Aprender a configurar sistemas distribuidos reales en Elixir.
 
 ---
 

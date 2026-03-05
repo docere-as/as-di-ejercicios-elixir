@@ -27,6 +27,7 @@ un desarrollo propio de un proceso de ingeniería del software.
   - Saber diseñar para el fallo, _let it fail_ y crear arquitecturas
     tolerantes a fallos.
   
+  - Consultar la documentación estándar de elixir y sus herramientas.
   
 ---
 
