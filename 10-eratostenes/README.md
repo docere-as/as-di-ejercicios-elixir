@@ -109,6 +109,10 @@ la cola.
 La cola es dinámica y va creciendo a medida que descubrimos nuevos
 números primos.
 
+Cada proceso _filtro_ **únicamente** puede enviar mensajes al siguiente
+proceso de la cola. La excepción a esta regla es el último proceso de la
+cola.
+
 
 ### Primera opción
 Antes de nada considera esta primera descripción del algoritmo:
