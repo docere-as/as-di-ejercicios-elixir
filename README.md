@@ -39,8 +39,12 @@ número de integrantes no es el indicado.
   * Cada issue tiene su propio foro de discusión donde comentar,
     preguntar, ...
 	
-  * El feedback te indicará qué cosas has hecho bien y que aspectos del
-    ejercicio necesitas corregir o se pueden mejorar.
+  * El feedback te indicará qué cosas has hecho bien y que aspectos
+    del ejercicio necesitas corregir o se pueden mejorar.
+	
+  * Después de aplicar las correcciones, el mensaje del commit
+    correspondiente debe hacer referencia al issue. Por ejemplo:
+    "Corregido .... del issue #2".
 	
   * Después de corregir el ejercicio, el profesor revisará las
     correcciones.
@@ -49,9 +53,9 @@ número de integrantes no es el indicado.
 	
 	Sino, el profesor volverá a darte feedback en el propio issue.
 	
-- Los ejercicios que necesitan correcciones quedan marcados como 
+- Los ejercicios que necesitan correcciones quedan marcados como
   erróneos. Si cierras el issue correspondiente, el profesor nunca
-  podrá revisar las correcciones y el ejercicio quedará marcada como
+  revisará las correcciones y el ejercicio quedará marcada como
   erróneo.
 
 - Después de corregir un issue, asegúrate que el mismo problema no se
